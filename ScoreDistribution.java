@@ -11,5 +11,6 @@ public class ScoreDistribution {
     }
 
     public int classMean(){
+        return 0;
     }
 }
