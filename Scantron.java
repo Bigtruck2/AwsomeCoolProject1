@@ -13,7 +13,7 @@ public class Scantron {
 
     static boolean[][] visited;
     public static void main(String[] args) throws IOException {
-        File img = new File("exam1.jpg");
+        File img = new File("images.jpg");
         BufferedImage bufferedImage = ImageIO.read(img);
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
             for (int j = 0; j < bufferedImage.getWidth(); j++) {
@@ -22,7 +22,7 @@ public class Scantron {
                 int g =(rgb>>8) & 0xFF;
                 int b =(rgb) & 0xFF;
                 int grey = (Math.max(Math.max(r,b),g)+Math.min(Math.min(r,b),g))/2;
-                grey = (grey>200)?255:0;
+                grey = (grey>150)?255:0;
                 int newPixel = (grey) | ((grey << 16)) | ((grey << 8));
                 bufferedImage.setRGB(j, i, newPixel);
             }
