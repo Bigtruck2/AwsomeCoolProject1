@@ -8,8 +8,8 @@ import java.util.List;
 
 public class Scantron {
     static final int BLACK = -16777216;
-    static final int RED = (0) | (255 << 8);
-    static final int GREEN = (0) | (255 << 16);
+    static final int GREEN = (0) | (255 << 8);
+    static final int RED = (0) | (255 << 16);
 
     static boolean[][] visited;
     public static void main(String[] args) throws IOException {
@@ -34,9 +34,10 @@ public class Scantron {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
                     System.out.println(bufferedImage.getRGB(j, i));
                     ArrayList<Point> contour = traceContour(bufferedImage, new Point(j,i));
+
                     if (contour.size()>13){
                         for (Point p:contour){
-                            bufferedImage.setRGB(p.getX(),p.getY(),GREEN);
+                            bufferedImage.setRGB(p.getX(),p.getY(),RED);
                         }
                     }
                 }
@@ -45,7 +46,7 @@ public class Scantron {
         ImageIO.write(bufferedImage, "jpg",img);
     }
     public static ArrayList<Point> traceContour(BufferedImage bufferedImage,  Point p){
-        ArrayList<Point> perimeter = new ArrayList<Point>();
+        ArrayList<Point> perimeter = new ArrayList<>();
         perimeter.add(p);
         int[] dx = {-1, 0, 1, 1, 1, 0, -1, -1};
         int[] dy = {-1, -1, -1, 0, 1, 1, 1, 0};
@@ -62,7 +63,7 @@ public class Scantron {
                     p = new Point(nx, ny);
                     perimeter.add(p);
                     pDirection = (clockwiseDir + 6) % 8;
-                    bufferedImage.setRGB(nx,ny,RED);
+                    bufferedImage.setRGB(nx,ny,GREEN);
                     break;
                 }
             }
