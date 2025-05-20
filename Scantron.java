@@ -3,13 +3,15 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Optional;
 
 public class Scantron {
     static final int BLACK = -16777216;
     static final int GREEN = (0) | (255 << 8);
     static final int RED = (0) | (255 << 16);
+    static final int BLUE = 255;
 
-    static boolean[][] visited;
     public static void main(String[] args) throws IOException {
         File img = new File("images.jpg");
         BufferedImage bufferedImage = ImageIO.read(img);
@@ -30,21 +32,34 @@ public class Scantron {
             for (int j = 0; j < bufferedImage.getWidth(); j++) {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
                     ArrayList<Point>contour = traceContour(bufferedImage, new Point(j,i));
-                    //double circularity = 4 * Math.PI * contour.meat.size() / (contour.perimeter.size() * contour.perimeter.size());
                     if (contour.size()>14){
                         ArrayList<Integer> x = new ArrayList<>();
                         ArrayList<Integer> y = new ArrayList<>();
 
                         for (Point p:contour){
-                            x.add((int) p.getX())
-                            bufferedImage.setRGB(p.getX(),p.getY(),RED);
+                            x.add(p.getX());
+                            y.add(p.getY());
+                            bufferedImage.setRGB(p.getX(), p.getY(), BLUE);
                         }
-                        int maxx = Util.max(x);
-                        int maxy = Util.max(y);
+                        int maxx = x.stream().max(Comparator.naturalOrder()).orElse(0);
+                        int maxy = y.stream().max(Comparator.naturalOrder()).orElse(0);
+                        int minx = x.stream().min(Comparator.naturalOrder()).orElse(0);
+                        int miny = y.stream().min(Comparator.naturalOrder()).orElse(0);
+                        int area = 0;
+                        for (int k = minx; k < maxx; k++) {
+                            for (int l = miny; l < maxy; l++) {
+                                if(bufferedImage.getRGB(k,l)==-16777216)area++;
+                                System.out.println(k);
+                                System.out.println(bufferedImage.getRGB(k,l));
+                            }
+                        }
 
-                        for (int k = Util.min(x); k < maxx; k++) {
-                            for (int l = Util.min(y); l < maxy; l++) {
-
+                        double circularity = 4 * Math.PI * area / (contour.size() * contour.size());
+                        System.out.println(area);
+                        System.out.println(circularity);
+                        if(circularity>.6) {
+                            for (Point p : contour) {
+                                bufferedImage.setRGB(p.getX(), p.getY(), RED);
                             }
                         }
                     }
