@@ -1,8 +1,10 @@
+import java.util.ArrayList;
+
 public class Util {
-    public int min(){
+    public static int min(ArrayList<Integer> a){
         return Integer.MAX_VALUE;
     }
-    public int max(){
+    public static int max(ArrayList<Integer> a){
         return Integer.MIN_VALUE;
     }
 }

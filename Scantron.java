@@ -1,10 +1,8 @@
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Scantron {
     static final int BLACK = -16777216;
@@ -28,16 +26,26 @@ public class Scantron {
             }
         }
        // visited = new boolean[bufferedImage.getWidth()][bufferedImage.getHeight()];
-        System.out.println(BLACK);
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
             for (int j = 0; j < bufferedImage.getWidth(); j++) {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
-                    System.out.println(bufferedImage.getRGB(j, i));
-                    ArrayList<Point> contour = traceContour(bufferedImage, new Point(j,i));
+                    ArrayList<Point>contour = traceContour(bufferedImage, new Point(j,i));
+                    //double circularity = 4 * Math.PI * contour.meat.size() / (contour.perimeter.size() * contour.perimeter.size());
+                    if (contour.size()>14){
+                        ArrayList<Integer> x = new ArrayList<>();
+                        ArrayList<Integer> y = new ArrayList<>();
 
-                    if (contour.size()>13){
                         for (Point p:contour){
+                            x.add((int) p.getX())
                             bufferedImage.setRGB(p.getX(),p.getY(),RED);
+                        }
+                        int maxx = Util.max(x);
+                        int maxy = Util.max(y);
+
+                        for (int k = Util.min(x); k < maxx; k++) {
+                            for (int l = Util.min(y); l < maxy; l++) {
+
+                            }
                         }
                     }
                 }
@@ -45,6 +53,7 @@ public class Scantron {
         }
         ImageIO.write(bufferedImage, "jpg",img);
     }
+    public record Pair<U, V>(U perimeter, V meat) {}
     public static ArrayList<Point> traceContour(BufferedImage bufferedImage,  Point p){
         ArrayList<Point> perimeter = new ArrayList<>();
         perimeter.add(p);
