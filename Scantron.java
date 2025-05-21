@@ -1,17 +1,17 @@
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Comparator;
+import java.util.Optional;
 
 public class Scantron {
     static final int BLACK = -16777216;
     static final int GREEN = (0) | (255 << 8);
     static final int RED = (0) | (255 << 16);
+    static final int BLUE = 255;
 
-    static boolean[][] visited;
     public static void main(String[] args) throws IOException {
         File img = new File("images.jpg");
         BufferedImage bufferedImage = ImageIO.read(img);
@@ -28,16 +28,39 @@ public class Scantron {
             }
         }
        // visited = new boolean[bufferedImage.getWidth()][bufferedImage.getHeight()];
-        System.out.println(BLACK);
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
             for (int j = 0; j < bufferedImage.getWidth(); j++) {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
-                    System.out.println(bufferedImage.getRGB(j, i));
-                    ArrayList<Point> contour = traceContour(bufferedImage, new Point(j,i));
+                    ArrayList<Point>contour = traceContour(bufferedImage, new Point(j,i));
+                    if (contour.size()>14){
+                        ArrayList<Integer> x = new ArrayList<>();
+                        ArrayList<Integer> y = new ArrayList<>();
 
-                    if (contour.size()>13){
                         for (Point p:contour){
-                            bufferedImage.setRGB(p.getX(),p.getY(),RED);
+                            x.add(p.getX());
+                            y.add(p.getY());
+                            bufferedImage.setRGB(p.getX(), p.getY(), BLUE);
+                        }
+                        int maxx = x.stream().max(Comparator.naturalOrder()).orElse(0);
+                        int maxy = y.stream().max(Comparator.naturalOrder()).orElse(0);
+                        int minx = x.stream().min(Comparator.naturalOrder()).orElse(0);
+                        int miny = y.stream().min(Comparator.naturalOrder()).orElse(0);
+                        int area = 0;
+                        for (int k = minx; k < maxx; k++) {
+                            for (int l = miny; l < maxy; l++) {
+                                if(bufferedImage.getRGB(k,l)==-16777216)area++;
+                                System.out.println(k);
+                                System.out.println(bufferedImage.getRGB(k,l));
+                            }
+                        }
+
+                        double circularity = 4 * Math.PI * area / (contour.size() * contour.size());
+                        System.out.println(area);
+                        System.out.println(circularity);
+                        if(circularity>.6) {
+                            for (Point p : contour) {
+                                bufferedImage.setRGB(p.getX(), p.getY(), RED);
+                            }
                         }
                     }
                 }
@@ -45,6 +68,7 @@ public class Scantron {
         }
         ImageIO.write(bufferedImage, "jpg",img);
     }
+    public record Pair<U, V>(U perimeter, V meat) {}
     public static ArrayList<Point> traceContour(BufferedImage bufferedImage,  Point p){
         ArrayList<Point> perimeter = new ArrayList<>();
         perimeter.add(p);
