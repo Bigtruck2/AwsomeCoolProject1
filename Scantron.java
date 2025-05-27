@@ -14,47 +14,32 @@ public class Scantron {
     static final int BLUE = 255;
 
     public static void main(String[] args) throws IOException {
-        File img = new File("images.jpg");
+        File img = new File("Test Checker.v3i.retinanet/test/2_jpg.rf.8fe85db4575b2b6c4a4552d2f2cfc13b.jpg");
         BufferedImage bufferedImage = ImageIO.read(img);
         greyScale(bufferedImage);
-        ArrayList<Double> bubblex = new ArrayList<>();
+        ArrayList<Bubble> bubbles = new ArrayList<>();
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
-            for (int j = bufferedImage.getWidth()/2; j < bufferedImage.getWidth(); j++) {
+            for (int j = bufferedImage.getWidth()*1/3; j < bufferedImage.getWidth()*2/3; j++) {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
                     ArrayList<Point>contour = traceContour(bufferedImage, new Point(j,i));
-                    if (contour.size()>14){
-                        ArrayList<Integer> x = new ArrayList<>();
-                        ArrayList<Integer> y = new ArrayList<>();
-
+                    ArrayList<Integer> xList = new ArrayList<>();
+                    ArrayList<Integer> yList = new ArrayList<>();
+                    if (contour.size()>18){
                         for (Point p:contour){
-                            x.add(p.getX());
-                            y.add(p.getY());
+                            xList.add(p.getX());
+                            yList.add(p.getY());
                             bufferedImage.setRGB(p.getX(), p.getY(), BLUE);
                         }
-                        int maxx = x.stream().max(Comparator.naturalOrder()).orElse(0);
-                        int maxy = y.stream().max(Comparator.naturalOrder()).orElse(0);
-                        int minx = x.stream().min(Comparator.naturalOrder()).orElse(0);
-                        int miny = y.stream().min(Comparator.naturalOrder()).orElse(0);
-                        double centerX = (maxx + minx) / 2.0;
-                        double centerY = (maxy + miny) / 2.0;
-                        int area = 0;
-                        for (int k = minx; k < maxx; k++) {
-                            for (int l = miny; l < maxy; l++) {
-
-                                double rx = (maxx - minx) / 2.0;
-                                double ry = (maxy - miny) / 2.0;
-                                if(bufferedImage.getRGB(k,l)==-16777216&&isPointInEllipse(k - centerX, l - centerY, rx, ry))area++;
-                            }
-                        }
-
-                        double circularity = 4 * Math.PI * area / (contour.size() * contour.size());
+                        int maxx = xList.stream().max(Comparator.naturalOrder()).orElse(0);
+                        int maxy = yList.stream().max(Comparator.naturalOrder()).orElse(0);
+                        int minx = xList.stream().min(Comparator.naturalOrder()).orElse(0);
+                        int miny = yList.stream().min(Comparator.naturalOrder()).orElse(0);
+                        Bubble bubble = new Bubble(minx,miny,maxx,maxy,contour);
+                        int area = bubble.getArea(bufferedImage);
                         System.out.println(area);
-                        System.out.println(circularity);
-                        if(circularity>.3&&area>8) {
-                            bubblex.add(centerX);
-                            for (Point p : contour) {
-                                bufferedImage.setRGB(p.getX(), p.getY(), RED);
-                            }
+                        System.out.println(bubble.getCircularity(area));
+                        if(bubble.getCircularity(area)>.3&&area>8) {
+                            bubbles.add(bubble);
                         }
                     }
                 }
@@ -134,7 +119,5 @@ public class Scantron {
         } while (!p.equals(c));
         return perimeter;
     }
-    public static boolean isPointInEllipse(double x, double y, double rx, double ry) {
-        return (x * x) / (rx * rx) + (y * y) / (ry * ry) <= 1.0;
-    }
+
 }
