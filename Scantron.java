@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 public class Scantron {
     static final int BLACK = -16777216;
@@ -19,7 +20,7 @@ public class Scantron {
         greyScale(bufferedImage);
         ArrayList<Bubble> bubbles = new ArrayList<>();
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
-            for (int j = bufferedImage.getWidth()*1/3; j < bufferedImage.getWidth()*2/3; j++) {
+            for (int j = 0; j < bufferedImage.getWidth()*1/3; j++) {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
                     ArrayList<Point>contour = traceContour(bufferedImage, new Point(j,i));
                     ArrayList<Integer> xList = new ArrayList<>();
@@ -45,26 +46,28 @@ public class Scantron {
                 }
             }
         }
-        int centerBubbles = (int) ((bubblex.stream().max(Comparator.naturalOrder()).orElse(0.0)+bubblex.stream().min(Comparator.naturalOrder()).orElse(0.0))/2);
-        ArrayList<Double> ab = new ArrayList<>();
-        ArrayList<Double> cd = new ArrayList<>();
+        bubbles = bubbles.stream().sorted(Comparator.comparingInt(Point::getX)).collect(Collectors.toCollection(ArrayList::new));
 
-        for (double x: bubblex){
-            if(centerBubbles<x){
-                ab.add(x);
+        int centerBubbles = (bubbles.get(0).getX()+bubbles.get(bubbles.size()-1).getX()) /2;
+        ArrayList<Integer> ab = new ArrayList<>();
+        ArrayList<Integer> cd = new ArrayList<>();
+
+        for (Bubble x: bubbles){
+            if(centerBubbles<x.getX()){
+                ab.add(x.getX());
             }else {
-                cd.add(x);
+                cd.add(x.getX());
             }
         }
-        int c = (int) ((ab.stream().max(Comparator.naturalOrder()).orElse(0.0)+ab.stream().min(Comparator.naturalOrder()).orElse(0.0))/2);
-        int a = (int) ((cd.stream().max(Comparator.naturalOrder()).orElse(0.0)+cd.stream().min(Comparator.naturalOrder()).orElse(0.0))/2);
-        int[] answers = new int[bubblex.size()];
-        for (int i = 0;i<bubblex.size();i++){
-            if(a>bubblex.get(i)){
+        int c = ((ab.stream().max(Comparator.naturalOrder()).orElse(0)+ab.stream().min(Comparator.naturalOrder()).orElse(0))/2);
+        int a = ((cd.stream().max(Comparator.naturalOrder()).orElse(0)+cd.stream().min(Comparator.naturalOrder()).orElse(0))/2);
+        int[] answers = new int[bubbles.size()];
+        for (int i = 0;i<bubbles.size();i++){
+            if(a>bubbles.get(i).getX()){
                 answers[i]=0;
-            }else if(bubblex.get(i)>a&&bubblex.get(i)<centerBubbles) {
+            }else if(bubbles.get(i).getX()>a&&bubbles.get(i).getX()<centerBubbles) {
                 answers[i]=1;
-            }else if(bubblex.get(i)<c) {
+            }else if(bubbles.get(i).getX()<c) {
                 answers[i]=2;
             }else {
                 answers[i]=3;
