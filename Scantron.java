@@ -15,17 +15,17 @@ public class Scantron {
     static final int BLUE = 255;
 
     public static void main(String[] args) throws IOException {
-        File img = new File("Test Checker.v3i.retinanet/test/2_jpg.rf.8fe85db4575b2b6c4a4552d2f2cfc13b.jpg");
+        File img = new File("Test Checker.v3i.retinanet/test/41_jpg.rf.7f5f4c0332061694490d6418157deee1.jpg");
         BufferedImage bufferedImage = ImageIO.read(img);
         greyScale(bufferedImage);
         ArrayList<Bubble> bubbles = new ArrayList<>();
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
-            for (int j = 0; j < bufferedImage.getWidth()*1/3; j++) {
+            for (int j = bufferedImage.getWidth()*2/3; j < bufferedImage.getWidth()*3/3; j++) {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
                     ArrayList<Point>contour = traceContour(bufferedImage, new Point(j,i));
                     ArrayList<Integer> xList = new ArrayList<>();
                     ArrayList<Integer> yList = new ArrayList<>();
-                    if (contour.size()>18){
+                    if (contour.size()>15){
                         for (Point p:contour){
                             xList.add(p.getX());
                             yList.add(p.getY());
@@ -37,10 +37,14 @@ public class Scantron {
                         int miny = yList.stream().min(Comparator.naturalOrder()).orElse(0);
                         Bubble bubble = new Bubble(minx,miny,maxx,maxy,contour);
                         int area = bubble.getArea(bufferedImage);
-                        System.out.println(area);
-                        System.out.println(bubble.getCircularity(area));
-                        if(bubble.getCircularity(area)>.3&&area>8) {
-                            bubbles.add(bubble);
+                        //System.out.println(area);
+                        if(bubble.getCircularity(area)>.5&&area>8) {
+                            //if (bubbles.size() < 2 || !bubbles.get(bubbles.size() - 2).isPointInEllipse(bubble.getX()-bubbles.get(bubbles.size() - 2).getX(), bubble.getY()-bubbles.get(bubbles.size() - 2).getY())){
+                                bubbles.add(bubble);
+                                for (Point p : contour) {
+                                    bufferedImage.setRGB(p.getX(), p.getY(), RED);
+                                }
+                            //}
                         }
                     }
                 }
@@ -62,6 +66,7 @@ public class Scantron {
         int c = ((ab.stream().max(Comparator.naturalOrder()).orElse(0)+ab.stream().min(Comparator.naturalOrder()).orElse(0))/2);
         int a = ((cd.stream().max(Comparator.naturalOrder()).orElse(0)+cd.stream().min(Comparator.naturalOrder()).orElse(0))/2);
         int[] answers = new int[bubbles.size()];
+        System.out.println(bubbles);
         for (int i = 0;i<bubbles.size();i++){
             if(a>bubbles.get(i).getX()){
                 answers[i]=0;
