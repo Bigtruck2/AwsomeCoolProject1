@@ -1,4 +1,3 @@
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -6,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Scantron {
@@ -20,39 +20,54 @@ public class Scantron {
         greyScale(bufferedImage);
         ArrayList<Bubble> bubbles = new ArrayList<>();
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
-            for (int j = bufferedImage.getWidth()*2/3; j < bufferedImage.getWidth()*3/3; j++) {
+            for (int j = 0; j < bufferedImage.getWidth()/3; j++) {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
                     ArrayList<Point>contour = traceContour(bufferedImage, new Point(j,i));
-                    ArrayList<Integer> xList = new ArrayList<>();
-                    ArrayList<Integer> yList = new ArrayList<>();
-                    if (contour.size()>15){
+                    if (contour.size()>25){
+                        ArrayList<Integer> x = new ArrayList<>();
+                        ArrayList<Integer> y = new ArrayList<>();
+
                         for (Point p:contour){
-                            xList.add(p.getX());
-                            yList.add(p.getY());
+                            x.add(p.getX());
+                            y.add(p.getY());
                             bufferedImage.setRGB(p.getX(), p.getY(), BLUE);
                         }
-                        int maxx = xList.stream().max(Comparator.naturalOrder()).orElse(0);
-                        int maxy = yList.stream().max(Comparator.naturalOrder()).orElse(0);
-                        int minx = xList.stream().min(Comparator.naturalOrder()).orElse(0);
-                        int miny = yList.stream().min(Comparator.naturalOrder()).orElse(0);
-                        Bubble bubble = new Bubble(minx,miny,maxx,maxy,contour);
-                        int area = bubble.getArea(bufferedImage);
-                        //System.out.println(area);
-                        if(bubble.getCircularity(area)>.5&&area>8) {
-                            //if (bubbles.size() < 2 || !bubbles.get(bubbles.size() - 2).isPointInEllipse(bubble.getX()-bubbles.get(bubbles.size() - 2).getX(), bubble.getY()-bubbles.get(bubbles.size() - 2).getY())){
-                                bubbles.add(bubble);
+                        int maxx = x.stream().max(Comparator.naturalOrder()).orElse(0);
+                        int maxy = y.stream().max(Comparator.naturalOrder()).orElse(0);
+                        int minx = x.stream().min(Comparator.naturalOrder()).orElse(0);
+                        int miny = y.stream().min(Comparator.naturalOrder()).orElse(0);
+                        int area = 0;
+                        for (int k = minx; k < maxx; k++) {
+                            for (int l = miny; l < maxy; l++) {
+                                if(bufferedImage.getRGB(k,l)==-16777216||bufferedImage.getRGB(k,l)==-16776961)area++;
+                                System.out.println(k);
+                                System.out.println(bufferedImage.getRGB(k,l));
+                            }
+                        }
+
+                        double circularity = 4 * Math.PI * area / (contour.size() * contour.size());
+                        if(circularity>.6&&area>20) {
+                            Bubble bubble = new Bubble(minx,miny,maxx,maxy,contour);
+                            bubbles.add(bubble);
+                            if (bubbles.size() < 2 || !bubble.isInside(bubbles.get(bubbles.size() - 2))){
                                 for (Point p : contour) {
+
                                     bufferedImage.setRGB(p.getX(), p.getY(), RED);
                                 }
-                            //}
+                            }else {
+                                bubbles.remove(bubbles.size()-1);
+                            }
                         }
                     }
                 }
             }
-        }
-        bubbles = bubbles.stream().sorted(Comparator.comparingInt(Point::getX)).collect(Collectors.toCollection(ArrayList::new));
 
+        }
+        System.out.println(bubbles.size());
+        bubbles = bubbles.stream().sorted(Comparator.comparingInt(Point::getX)).collect(Collectors.toCollection(ArrayList::new));
         int centerBubbles = (bubbles.get(0).getX()+bubbles.get(bubbles.size()-1).getX()) /2;
+        bubbles = bubbles.stream().sorted(Comparator.comparingInt(Point::getY)).collect(Collectors.toCollection(ArrayList::new));
+
         ArrayList<Integer> ab = new ArrayList<>();
         ArrayList<Integer> cd = new ArrayList<>();
 
@@ -66,7 +81,7 @@ public class Scantron {
         int c = ((ab.stream().max(Comparator.naturalOrder()).orElse(0)+ab.stream().min(Comparator.naturalOrder()).orElse(0))/2);
         int a = ((cd.stream().max(Comparator.naturalOrder()).orElse(0)+cd.stream().min(Comparator.naturalOrder()).orElse(0))/2);
         int[] answers = new int[bubbles.size()];
-        System.out.println(bubbles);
+
         for (int i = 0;i<bubbles.size();i++){
             if(a>bubbles.get(i).getX()){
                 answers[i]=0;
@@ -79,11 +94,6 @@ public class Scantron {
             }
         }
         System.out.println(Arrays.toString(answers));
-        for (int i = 0; i < bufferedImage.getHeight(); i++) {
-            bufferedImage.setRGB(a,i,GREEN);
-            bufferedImage.setRGB(c,i,GREEN);
-            bufferedImage.setRGB(centerBubbles,i,GREEN);
-        }
         ImageIO.write(bufferedImage, "jpg",img);
     }
     public static void greyScale(BufferedImage bufferedImage){
@@ -100,6 +110,7 @@ public class Scantron {
             }
         }
     }
+
     //inspired by https://github.com/biometrics/imagingbook/blob/master/src/contours/ContourTracer.java
     public static ArrayList<Point> traceContour(BufferedImage bufferedImage,  Point p){
         ArrayList<Point> perimeter = new ArrayList<>();
@@ -127,5 +138,4 @@ public class Scantron {
         } while (!p.equals(c));
         return perimeter;
     }
-
 }

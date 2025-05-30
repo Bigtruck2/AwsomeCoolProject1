@@ -30,7 +30,9 @@ public class Bubble extends Point{
     public double getCircularity(int area){
         return 4 * Math.PI * area / (contour.size() * contour.size());
     }
-
+    public boolean isInside(Bubble bubble){
+        return bubble.maxx>maxx&&bubble.minx<minx&&bubble.maxy>maxy&&bubble.miny<miny;
+    }
     @Override
     public String toString() {
         return "Bubble{" +

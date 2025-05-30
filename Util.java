@@ -1,4 +1,4 @@
-public int min() {
+/*public int min() {
     if (numbers == null || numbers.isEmpty()) {
         throw new IllegalStateException("List is empty or not initialized");
     }
@@ -24,4 +24,4 @@ public int max() {
         }
     }
     return max;
-}
+}*/
