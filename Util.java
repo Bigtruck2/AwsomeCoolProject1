@@ -26,7 +26,7 @@ public int max() {
     return max;
 }
 
- */
+
 
 import java.util.ArrayList;
 
@@ -43,4 +43,4 @@ public double getScore (ArrayList<Integer> corrects, int[] answers){
         }
     }
     return (double)(rights / answers.length);
-}
+} */

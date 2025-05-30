@@ -2,20 +2,27 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Scantron {
     static final int BLACK = -16777216;
     static final int GREEN = (0) | (255 << 8);
     static final int RED = (0) | (255 << 16);
     static final int BLUE = 255;
-
     public static void main(String[] args) throws IOException {
-        File img = new File("Test Checker.v3i.retinanet/test/41_jpg.rf.7f5f4c0332061694490d6418157deee1.jpg");
+        Scanner scanner = new Scanner(System.in);
+        ArrayList<Integer> corrects = new ArrayList<>();
+
+        for (String s:scanner.nextLine().split(" ")){
+            corrects.add(Integer.parseInt(s));
+        }
+        System.out.println(getScore("Test Checker.v3i.retinanet/test/41_jpg.rf.7f5f4c0332061694490d6418157deee1.jpg",corrects));
+    }
+
+    public static double getScore(String fileName,ArrayList<Integer> corrects) throws IOException {
+        File img = new File(fileName);
         BufferedImage bufferedImage = ImageIO.read(img);
         greyScale(bufferedImage);
         ArrayList<Bubble> bubbles = new ArrayList<>();
@@ -40,8 +47,6 @@ public class Scantron {
                         for (int k = minx; k < maxx; k++) {
                             for (int l = miny; l < maxy; l++) {
                                 if(bufferedImage.getRGB(k,l)==-16777216||bufferedImage.getRGB(k,l)==-16776961)area++;
-                                System.out.println(k);
-                                System.out.println(bufferedImage.getRGB(k,l));
                             }
                         }
 
@@ -61,9 +66,7 @@ public class Scantron {
                     }
                 }
             }
-
         }
-        System.out.println(bubbles.size());
         bubbles = bubbles.stream().sorted(Comparator.comparingInt(Point::getX)).collect(Collectors.toCollection(ArrayList::new));
         int centerBubbles = (bubbles.get(0).getX()+bubbles.get(bubbles.size()-1).getX()) /2;
         bubbles = bubbles.stream().sorted(Comparator.comparingInt(Point::getY)).collect(Collectors.toCollection(ArrayList::new));
@@ -94,7 +97,20 @@ public class Scantron {
             }
         }
         System.out.println(Arrays.toString(answers));
-        ImageIO.write(bufferedImage, "jpg",img);
+        //ImageIO.write(bufferedImage, "jpg",img);
+        int rights = 0;
+        for (int i = 0; i < corrects.size(); i++){
+            if (corrects.get(i) < 0 || (corrects.get(i)) > 3){
+                throw new IllegalStateException("Number Not Allowed");
+            }
+            else{
+                if (corrects.get(i).equals(answers[i])){
+                    rights++;
+                }
+            }
+        }
+        return (double) rights / answers.length;
+        //return answers;
     }
     public static void greyScale(BufferedImage bufferedImage){
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
