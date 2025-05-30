@@ -1,4 +1,4 @@
-/*public int min() {
+/* public int min() {
     if (numbers == null || numbers.isEmpty()) {
         throw new IllegalStateException("List is empty or not initialized");
     }
@@ -24,4 +24,23 @@ public int max() {
         }
     }
     return max;
-}*/
+}
+
+ */
+
+import java.util.ArrayList;
+
+public double getScore (ArrayList<Integer> corrects, int[] answers){
+    int rights = 0;
+    for (int i = 0; i < corrects.size(); i++){
+        if (corrects.get(i) < 0 || (corrects.get(i)) > 3){
+            throw new IllegalStateException("Number Not Allowed");
+        }
+        else{
+            if (corrects.get(i).equals(answers[i])){
+                rights++;
+            }
+        }
+    }
+    return (double)(rights / answers.length);
+}

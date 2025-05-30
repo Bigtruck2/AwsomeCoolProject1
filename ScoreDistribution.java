@@ -1,16 +1,20 @@
 import java.util.ArrayList;
 public class ScoreDistribution {
-    public ArrayList<Score> Scores = new ArrayList<>();
+    public ArrayList<Integer> scores = new ArrayList<>();
     public int numberOfScores = 0;
 
-    public ScoreDistribution(Score[] sco){
-        for (Score i : sco){
-            Scores.add(i);
+    public ScoreDistribution(ArrayList<Integer> sco){
+        for (Integer i : sco){
+            scores.add(i);
         }
-        numberOfScores = Scores.size();
+        numberOfScores = scores.size();
     }
 
-    public int classMean(){
-        return 0;
+    public int classMean(ArrayList<Integer> scores) {
+        int sum = 0;
+        for (Integer i : scores) {
+            sum += i;
+        }
+        return sum / scores.size();
     }
 }
