@@ -2,10 +2,14 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
+//1 2 0 2 3 3 0 0 1 0 3 0 2 3 2 0 1 2 0 2
 public class Scantron {
     static final int BLACK = -16777216;
     static final int GREEN = (0) | (255 << 8);
@@ -15,10 +19,19 @@ public class Scantron {
         Scanner scanner = new Scanner(System.in);
         ArrayList<Integer> corrects = new ArrayList<>();
 
-        for (String s:scanner.nextLine().split(" ")){
+        for (String s:scanner.nextLine().trim().split(" ")){
             corrects.add(Integer.parseInt(s));
         }
-        System.out.println(getScore("Test Checker.v3i.retinanet/test/41_jpg.rf.7f5f4c0332061694490d6418157deee1.jpg",corrects));
+        ArrayList<Double> scores = new ArrayList<>();
+        Path folder = Paths.get("Test Checker.v3i.retinanet/train");
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(folder)) {
+            for (Path entry : stream) {
+                System.out.println("Test Checker.v3i.retinanet/train/"+entry.getFileName());
+                scores.add(getScore("Test Checker.v3i.retinanet/train/"+entry.getFileName(),corrects));
+            }
+        }
+        ScoreDistribution scoreDistribution = new ScoreDistribution(scores);
+        //System.out.println(getScore("Test Checker.v3i.retinanet/test/41_jpg.rf.7f5f4c0332061694490d6418157deee1.jpg",corrects));
     }
 
     public static double getScore(String fileName,ArrayList<Integer> corrects) throws IOException {
@@ -27,14 +40,14 @@ public class Scantron {
         greyScale(bufferedImage);
         ArrayList<Bubble> bubbles = new ArrayList<>();
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
-            for (int j = 0; j < bufferedImage.getWidth()/3; j++) {
+            for (int j = 0; j < (bufferedImage.getWidth()) / 3; j++) {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
-                    ArrayList<Point>contour = traceContour(bufferedImage, new Point(j,i));
-                    if (contour.size()>25){
+                    ArrayList<Point> contour = traceContour(bufferedImage, new Point(j, i));
+                    if (contour.size() > 25) {
                         ArrayList<Integer> x = new ArrayList<>();
                         ArrayList<Integer> y = new ArrayList<>();
 
-                        for (Point p:contour){
+                        for (Point p : contour) {
                             x.add(p.getX());
                             y.add(p.getY());
                             bufferedImage.setRGB(p.getX(), p.getY(), BLUE);
@@ -46,21 +59,22 @@ public class Scantron {
                         int area = 0;
                         for (int k = minx; k < maxx; k++) {
                             for (int l = miny; l < maxy; l++) {
-                                if(bufferedImage.getRGB(k,l)==-16777216||bufferedImage.getRGB(k,l)==-16776961)area++;
+                                if (bufferedImage.getRGB(k, l) == -16777216 || bufferedImage.getRGB(k, l) == -16776961)
+                                    area++;
                             }
                         }
 
                         double circularity = 4 * Math.PI * area / (contour.size() * contour.size());
-                        if(circularity>.6&&area>20) {
-                            Bubble bubble = new Bubble(minx,miny,maxx,maxy,contour);
+                        if (circularity > .6 && area > 20) {
+                            Bubble bubble = new Bubble(minx, miny, maxx, maxy, contour);
                             bubbles.add(bubble);
-                            if (bubbles.size() < 2 || !bubble.isInside(bubbles.get(bubbles.size() - 2))){
+                            if (bubbles.size() < 2 || !bubble.isInside(bubbles.get(bubbles.size() - 2))) {
                                 for (Point p : contour) {
 
                                     bufferedImage.setRGB(p.getX(), p.getY(), RED);
                                 }
-                            }else {
-                                bubbles.remove(bubbles.size()-1);
+                            } else {
+                                bubbles.remove(bubbles.size() - 1);
                             }
                         }
                     }
@@ -109,7 +123,7 @@ public class Scantron {
                 }
             }
         }
-        return (double) rights / answers.length;
+        return  100.0*rights / answers.length;
         //return answers;
     }
     public static void greyScale(BufferedImage bufferedImage){

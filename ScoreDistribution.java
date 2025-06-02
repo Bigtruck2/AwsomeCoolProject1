@@ -1,10 +1,10 @@
 import java.util.ArrayList;
 public class ScoreDistribution {
-    public ArrayList<Integer> scores = new ArrayList<>();
+    public ArrayList<Double> scores = new ArrayList<>();
     public int numberOfScores = 0;
 
-    public ScoreDistribution(ArrayList<Integer> sco){
-        for (Integer i : sco){
+    public ScoreDistribution(ArrayList<Double> sco){
+        for (Double i : sco){
             scores.add(i);
         }
         numberOfScores = scores.size();
