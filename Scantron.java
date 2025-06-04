@@ -8,8 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-//1 2 0 2 3 3 0 0 1 0 3 0 2 3 2 0 1 2 0 2
+//1 3 2 1 0 2 1 2 0 3 1 3 2 1 2 0 3 1 2 3
 public class Scantron {
     static final int BLACK = -16777216;
     static final int GREEN = (0) | (255 << 8);
@@ -111,7 +110,13 @@ public class Scantron {
             }
         }
         System.out.println(Arrays.toString(answers));
-        //ImageIO.write(bufferedImage, "jpg",img);
+        for (int i = 0; i < bufferedImage.getHeight(); i++) {
+            bufferedImage.setRGB(a,i,GREEN);
+            bufferedImage.setRGB(centerBubbles,i,GREEN);
+            bufferedImage.setRGB(c,i,GREEN);
+
+        }
+        ImageIO.write(bufferedImage, "jpg",img);
         int rights = 0;
         for (int i = 0; i < corrects.size(); i++){
             if (corrects.get(i) < 0 || (corrects.get(i)) > 3){
@@ -123,6 +128,7 @@ public class Scantron {
                 }
             }
         }
+        System.out.println(100.0*rights / answers.length);
         return  100.0*rights / answers.length;
         //return answers;
     }
