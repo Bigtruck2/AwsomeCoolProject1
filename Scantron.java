@@ -31,6 +31,7 @@ public class Scantron {
         }
         ScoreDistribution classA = new ScoreDistribution(scores);
         System.out.println(classA.mean());
+        System.out.println(scores);
         //System.out.println(getScore("Test Checker.v3i.retinanet/test/41_jpg.rf.7f5f4c0332061694490d6418157deee1.jpg",corrects));
     }
 
