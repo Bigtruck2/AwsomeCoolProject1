@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 public class Scantron {
     static final int BLACK = -16777216;
     static final int GREEN = (0) | (255 << 8);
-    static final int RED = (0) | (255 << 16);
     static final int BLUE = 255;
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
@@ -39,7 +38,7 @@ public class Scantron {
         File img = new File(fileName);
         BufferedImage bufferedImage = ImageIO.read(img);
         greyScale(bufferedImage);
-        ArrayList<Bubble> bubbles = new ArrayList<>();
+        ArrayList<Shape> shapes = new ArrayList<>();
         for (int i = 0; i < bufferedImage.getHeight(); i++) {
             for (int j = 0; j < (bufferedImage.getWidth()) / 3; j++) {
                 if (bufferedImage.getRGB(j, i) == BLACK) {
@@ -57,39 +56,30 @@ public class Scantron {
                         int maxy = y.stream().max(Comparator.naturalOrder()).orElse(0);
                         int minx = x.stream().min(Comparator.naturalOrder()).orElse(0);
                         int miny = y.stream().min(Comparator.naturalOrder()).orElse(0);
-                        int area = 0;
-                        for (int k = minx; k < maxx; k++) {
-                            for (int l = miny; l < maxy; l++) {
-                                if (bufferedImage.getRGB(k, l) == -16777216 || bufferedImage.getRGB(k, l) == -16776961)
-                                    area++;
-                            }
-                        }
+                        Shape shape = new Shape(minx, miny, maxx, maxy, contour);
 
-                        double circularity = 4 * Math.PI * area / (contour.size() * contour.size());
-                        if (circularity > .6 && area > 20) {
-                            Bubble bubble = new Bubble(minx, miny, maxx, maxy, contour);
-                            bubbles.add(bubble);
-                            if (bubbles.size() < 2 || !bubble.isInside(bubbles.get(bubbles.size() - 2))) {
-                                for (Point p : contour) {
-
-                                    bufferedImage.setRGB(p.getX(), p.getY(), RED);
-                                }
+                        int area = shape.getArea(bufferedImage);
+                        if (shape.isCircle(area)) {
+                            Bubble bubble = new Bubble(shape);
+                            shapes.add(bubble);
+                            if (shapes.size() < 2 || !shape.isInside(shapes.get(shapes.size() - 2))) {
+                                bubble.color(bufferedImage);
                             } else {
-                                bubbles.remove(bubbles.size() - 1);
+                                shapes.remove(shapes.size() - 1);
                             }
                         }
                     }
                 }
             }
         }
-        bubbles = bubbles.stream().sorted(Comparator.comparingInt(Point::getX)).collect(Collectors.toCollection(ArrayList::new));
-        int centerBubbles = (bubbles.get(0).getX()+bubbles.get(bubbles.size()-1).getX()) /2;
-        bubbles = bubbles.stream().sorted(Comparator.comparingInt(Point::getY)).collect(Collectors.toCollection(ArrayList::new));
+        shapes = shapes.stream().sorted(Comparator.comparingInt(Point::getX)).collect(Collectors.toCollection(ArrayList::new));
+        int centerBubbles = (shapes.get(0).getX()+ shapes.get(shapes.size()-1).getX()) /2;
+        shapes = shapes.stream().sorted(Comparator.comparingInt(Point::getY)).collect(Collectors.toCollection(ArrayList::new));
 
         ArrayList<Integer> ab = new ArrayList<>();
         ArrayList<Integer> cd = new ArrayList<>();
 
-        for (Bubble x: bubbles){
+        for (Shape x: shapes){
             if(centerBubbles<x.getX()){
                 ab.add(x.getX());
             }else {
@@ -98,14 +88,14 @@ public class Scantron {
         }
         int c = ((ab.stream().max(Comparator.naturalOrder()).orElse(0)+ab.stream().min(Comparator.naturalOrder()).orElse(0))/2);
         int a = ((cd.stream().max(Comparator.naturalOrder()).orElse(0)+cd.stream().min(Comparator.naturalOrder()).orElse(0))/2);
-        int[] answers = new int[bubbles.size()];
+        int[] answers = new int[shapes.size()];
 
-        for (int i = 0;i<bubbles.size();i++){
-            if(a>bubbles.get(i).getX()){
+        for (int i = 0; i< shapes.size(); i++){
+            if(a> shapes.get(i).getX()){
                 answers[i]=0;
-            }else if(bubbles.get(i).getX()>a&&bubbles.get(i).getX()<centerBubbles) {
+            }else if(shapes.get(i).getX()>a&& shapes.get(i).getX()<centerBubbles) {
                 answers[i]=1;
-            }else if(bubbles.get(i).getX()<c) {
+            }else if(shapes.get(i).getX()<c) {
                 answers[i]=2;
             }else {
                 answers[i]=3;

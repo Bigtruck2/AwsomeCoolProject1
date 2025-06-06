@@ -1,45 +1,18 @@
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Comparator;
 
-public class Bubble extends Point{
-    private int minx, miny, maxx, maxy;
-    private ArrayList<Point> contour;
-
+public class Bubble extends Shape{
+    static final int RED = (0) | (255 << 16);
     public Bubble(int minx, int miny, int maxx, int maxy, ArrayList<Point> contour) {
-        super((minx+maxx)/2, (miny+maxy)/2);
-        this.minx =minx;
-        this.miny = miny;
-        this.maxx = maxx;
-        this.maxy = maxy;
-        this.contour = contour;
+        super(minx, miny, maxx, maxy, contour);
     }
-    public boolean isPointInEllipse(double x, double y) {
-        return (x * x) / (super.getX() * super.getX()) + (y * y) / (super.getY() * super.getY()) <= 1.0;
+    public Bubble(Shape shape){
+        super(shape.minx, shape.miny, shape.maxx, shape.maxy, shape.contour);
     }
-    public int getArea(BufferedImage bufferedImage){
-        int area = 0;
+    public void color(BufferedImage bufferedImage){
+        for (Point p : contour) {
 
-        for (int k = minx; k < maxx; k++) {
-            for (int l = miny; l < maxy; l++) {
-                if((bufferedImage.getRGB(k,l)==-16777216||bufferedImage.getRGB(k,l)==-16776961)&&isPointInEllipse(k - getX(), l - getY()))area++;
-            }
+            bufferedImage.setRGB(p.getX(), p.getY(), RED);
         }
-        return area;
-    }
-    public double getCircularity(int area){
-        return 4 * Math.PI * area / (contour.size() * contour.size());
-    }
-    public boolean isInside(Bubble bubble){
-        return bubble.maxx>maxx&&bubble.minx<minx&&bubble.maxy>maxy&&bubble.miny<miny;
-    }
-    @Override
-    public String toString() {
-        return "Bubble{" +
-                "maxy=" + maxy +
-                ", maxx=" + maxx +
-                ", miny=" + miny +
-                ", minx=" + minx +
-                '}';
     }
 }
